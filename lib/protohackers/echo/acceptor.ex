@@ -1,8 +1,8 @@
 defmodule Protohackers.Echo.Acceptor do
-  defstruct [:listen_socket, :client_socket, :coordinator]
+  defstruct [:listen_socket, :client_socket, :coordinator, :received_bin]
   alias Protohackers.Echo.Coordinator
   alias __MODULE__
-  use GenServer
+  use GenServer, restart: :temporary
 
   def start_link({lsock, coodinator}) do
     GenServer.start_link(Acceptor, {lsock, coodinator})
@@ -10,7 +10,7 @@ defmodule Protohackers.Echo.Acceptor do
 
   @impl GenServer
   def init({lsock, coordinator}) do
-    {:ok, %Acceptor{listen_socket: lsock, coordinator: coordinator}, {:continue, :accept}}
+    {:ok, %Acceptor{listen_socket: lsock, coordinator: coordinator, received_bin: ""}, {:continue, :accept}}
   end
 
   @impl GenServer
@@ -21,15 +21,16 @@ defmodule Protohackers.Echo.Acceptor do
   end
 
   @impl GenServer
-  def handle_info({:tcp_closed, csock}, s = %Acceptor{client_socket: scsock}) when csock == scsock do
-    IO.puts("Received disconnect from client, exiting normally")
-    {:stop, :normal, s}
+  def handle_info({:tcp, _csock, client_bin}, state) do
+    {:noreply, %Acceptor{state| received_bin: state.received_bin <> client_bin}}
   end
 
   @impl GenServer
-  def handle_info(msg, state) do
-    IO.inspect(msg, label: "Inbound message received")
-    {:noreply, state}
+  def handle_info({:tcp_closed, csock}, s = %Acceptor{client_socket: scsock}) when csock == scsock do
+    IO.puts("Received disconnect from #{inspect(csock)}, echoing binary and exiting normally")
+    :ok = :gen_tcp.send(csock, s.received_bin)
+    :gen_tcp.close(csock)
+    {:stop, :shutdown, s}
   end
 
   defp acceptor(lsock) do

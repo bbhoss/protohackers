@@ -10,7 +10,7 @@ defmodule Protohackers.Echo.Coordinator do
 
   @impl true
   def init(_arg) do
-    {:ok, sock} = :gen_tcp.listen(9999, [:inet6, active: true, packet: :raw])
+    {:ok, sock} = :gen_tcp.listen(9999, [:inet6, :binary, active: true, packet: :raw, exit_on_close: false])
     IO.puts("Listening on 9999")
     {:ok, %Coordinator{listen_socket: sock}, {:continue, :add_initial_acceptor}}
   end
@@ -40,13 +40,11 @@ defmodule Protohackers.Echo.Coordinator do
 
   defp locate_child_pool_supervisor() do
     {:parent, supervisor} = :erlang.process_info(self(), :parent)
-    IO.inspect(supervisor)
     [ds_child |_restchildren] = Supervisor.which_children(supervisor)
       |> Enum.reverse()
-    IO.inspect(ds_child)
+
     case ds_child do
-      {DynamicSupervisor, child_pid, :supervisor, [DynamicSupervisor]} = cspec when is_pid(child_pid) ->
-        IO.inspect(cspec, label: "CSpec")
+      {DynamicSupervisor, child_pid, :supervisor, [DynamicSupervisor]} when is_pid(child_pid) ->
         child_pid
     end
   end
