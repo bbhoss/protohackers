@@ -26,7 +26,7 @@
           pkgs.locale;
       in {
         devShell = pkgs.mkShell {
-          buildInputs = [ elixir locales ]
+          buildInputs = [ elixir locales pkgs.wireshark ]
             ++ pkgs.lib.optionals pkgs.stdenv.isDarwin
             (with pkgs.darwin.apple_sdk.frameworks; [ Cocoa CoreServices ]);
         };
