@@ -11,7 +11,8 @@ defmodule Protohackers.Application do
       # Starts a worker by calling: Protohackers.Worker.start_link(arg)
       {Protohackers.Echo.Supervisor, []},
       {Protohackers.Primetime.Supervisor, []},
-      {Protohackers.Means.Supervisor, []}
+      {Protohackers.Means.Supervisor, []},
+      {Protohackers.BudgetChat.Supervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
