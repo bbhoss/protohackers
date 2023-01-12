@@ -12,7 +12,8 @@ defmodule Protohackers.Application do
       {Protohackers.Echo.Supervisor, []},
       {Protohackers.Primetime.Supervisor, []},
       {Protohackers.Means.Supervisor, []},
-      {Protohackers.BudgetChat.Supervisor, []}
+      {Protohackers.BudgetChat.Supervisor, []},
+      Protohackers.UnusualDB
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
